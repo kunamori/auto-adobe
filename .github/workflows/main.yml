@@ -1,9 +1,6 @@
 name: Automatic get Adobe from Software KMUTNB
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
     types: [opened]
     branches: [main]
