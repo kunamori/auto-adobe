@@ -67,19 +67,23 @@ jobs:
               content
           )
           
-          # Update the date_expire - Using a more robust pattern that handles spacing
-          updated_content = re.sub(
-              r'(\s*"date_expire":\s*")\d{4}-\d{2}-\d{2}(")',
-              f'\\1{new_date}\\2',
-              updated_content
-          )
+          # Fix the adobe_data dictionary - this is a complete replacement of the malformed dictionary
+          adobe_data_pattern = r'adobe_data = \{[^}]*\}'
+          fixed_adobe_data = f'''adobe_data = {{
+        "userId": '',
+        "date_expire": "{new_date}",
+        "status_number": "0",
+        "Submit_get": ''
+}}'''
           
-          # In case the field is missing, check and add it back if needed
-          if '"date_expire":' not in updated_content:
-              # Find where to insert the field (after userId field)
+          # Replace the entire adobe_data dictionary
+          if re.search(adobe_data_pattern, updated_content):
+              updated_content = re.sub(adobe_data_pattern, fixed_adobe_data, updated_content)
+          else:
+              # If we can't find the pattern, add it before the "with rq.session()" line
               updated_content = re.sub(
-                  r'("userId":\s*\'.*?\')',
-                  f'\\1,\n        "date_expire": "{new_date}"',
+                  r'# USING SESSION FOR HOLD SESSION FOR GRANT ADOBE ACCESS',
+                  f'{fixed_adobe_data}\n\n# USING SESSION FOR HOLD SESSION FOR GRANT ADOBE ACCESS',
                   updated_content
               )
           

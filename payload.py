@@ -65,8 +65,8 @@ adobe_headers = {
 }
 
 adobe_data = {
-        ,
-        "date_expire": "2025-05-01",2025-05-01,
+        "userId": '',
+        "date_expire": "2024-09-01",
         "status_number": "0",
         "Submit_get": ''
 }
