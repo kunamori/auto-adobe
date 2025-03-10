@@ -26,8 +26,7 @@ jobs:
           python - <<EOF
           import re
           import requests
-          from datetime import datetime, timedelta
-          import calendar
+          from datetime import datetime
           
           # Get latest Firefox version
           try:
@@ -37,18 +36,9 @@ jobs:
           except Exception:
               firefox_version = "135.0"  # Default fallback
           
-          # Calculate expiration date (first day of next month)
+          # Calculate expiration date (first day of month after next)
           today = datetime.now()
-          # Get the first day of the next month
           if today.month == 12:
-              next_month = datetime(today.year + 1, 1, 1)
-          else:
-              next_month = datetime(today.year, today.month + 1, 1)
-          
-          # If we want to set it to first day of month after next
-          if today.month == 11:
-              after_next_month = datetime(today.year + 1, 1, 1)
-          elif today.month == 12:
               after_next_month = datetime(today.year + 1, 2, 1)
           else:
               after_next_month = datetime(today.year, today.month + 2, 1)
@@ -68,18 +58,17 @@ jobs:
           )
           
           # More robust approach to find and replace the adobe_data dictionary
-          # This pattern finds the start of the adobe_data declaration up to the closing brace
-          adobe_data_pattern = re.compile(r'adobe_data\s*=\s*\{[^{]*?\}', re.DOTALL)
+          adobe_data_pattern = re.compile(r'adobe_data\s*=\s*\{[^}]*\}', re.DOTALL)
           
           # Fix structure and update date
-          fixed_adobe_data = """adobe_data = {
+          fixed_adobe_data = f"""adobe_data = {{
         "userId": '',
-        "date_expire": "%s",
+        "date_expire": "{new_date}",
         "status_number": "0",
         "Submit_get": ''
-}""" % new_date
+}}"""
           
-          # First try the regex approach
+          # Replace the adobe_data dictionary
           if adobe_data_pattern.search(updated_content):
               updated_content = adobe_data_pattern.sub(fixed_adobe_data, updated_content)
           else:
