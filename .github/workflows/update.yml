@@ -11,16 +11,16 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.2.2
-
+        
       - name: Set up Python
         uses: actions/setup-python@v5.4.0
         with:
           python-version: '3.13'
-
+          
       - name: Install dependencies
         run: pip install requests
         
-        - name: Update User-Agent and Expiration Date
+      - name: Update User-Agent and Expiration Date
         id: update_script
         run: |
           python - <<EOF
