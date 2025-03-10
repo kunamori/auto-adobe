@@ -1,0 +1,106 @@
+name: Update User-Agent and Expiration Date
+
+on:
+  schedule:
+    - cron: '0 0 1 * *'  # Runs at midnight on the first day of each month
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.2
+        
+      - name: Set up Python
+        uses: actions/setup-python@v5.4.0
+        with:
+          python-version: '3.13'
+          
+      - name: Install dependencies
+        run: pip install requests
+        
+      - name: Update User-Agent and Expiration Date
+        id: update_script
+        run: |
+          python - <<EOF
+          import re
+          import requests
+          from datetime import datetime
+          
+          # Get latest Firefox version
+          try:
+              firefox_response = requests.get("https://product-details.mozilla.org/1.0/firefox_versions.json")
+              firefox_data = firefox_response.json()
+              firefox_version = firefox_data.get("LATEST_FIREFOX_VERSION", "135.0")  # Default if fetch fails
+          except Exception:
+              firefox_version = "135.0"  # Default fallback
+          
+          # Calculate expiration date (first day of month after next)
+          today = datetime.now()
+          if today.month == 12:
+              after_next_month = datetime(today.year + 1, 2, 1)
+          else:
+              after_next_month = datetime(today.year, today.month + 2, 1)
+          
+          # Format the date as YYYY-MM-DD
+          new_date = after_next_month.strftime("%Y-%m-%d")
+          
+          # Read the payload.py file
+          with open('payload.py', 'r') as file:
+              content = file.read()
+          
+          # Update the User-Agent with latest Firefox version
+          updated_content = re.sub(
+              r'(User-Agent": "Mozilla/5\.0 \(X11; Linux x86_64; rv:)\d+(\.\d+)?',
+              f'User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:{firefox_version}',
+              content
+          )
+          
+          # More robust approach to find and replace the adobe_data dictionary
+          adobe_data_pattern = re.compile(r'adobe_data\s*=\s*\{[^}]*\}', re.DOTALL)
+          
+          # Fix structure and update date
+          fixed_adobe_data = f"""adobe_data = {{
+        "userId": '',
+        "date_expire": "{new_date}",
+        "status_number": "0",
+        "Submit_get": ''
+}}"""
+          
+          # Replace the adobe_data dictionary
+          if adobe_data_pattern.search(updated_content):
+              updated_content = adobe_data_pattern.sub(fixed_adobe_data, updated_content)
+          else:
+              # Fallback: look for the line that starts with 'adobe_data ='
+              lines = updated_content.split('\n')
+              start_idx = -1
+              end_idx = -1
+              
+              for i, line in enumerate(lines):
+                  if 'adobe_data =' in line:
+                      start_idx = i
+                  if start_idx != -1 and '}' in line:
+                      end_idx = i
+                      break
+              
+              if start_idx != -1 and end_idx != -1:
+                  # Replace the entire block
+                  updated_lines = lines[:start_idx] + fixed_adobe_data.split('\n') + lines[end_idx+1:]
+                  updated_content = '\n'.join(updated_lines)
+          
+          # Write the updated content back
+          with open('payload.py', 'w') as file:
+              file.write(updated_content)
+          
+          print(f"Updated User-Agent to Firefox {firefox_version}")
+          print(f"Updated expiration date to {new_date}")
+          EOF
+
+      - name: Commit and push if changes
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git add payload.py
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update User-Agent version and expiration date for $(date +'%B %Y')"
+          git push
