@@ -67,21 +67,24 @@ jobs:
               content
           )
           
-          # Update the date_expire - Using a more robust pattern that handles spacing
-          updated_content = re.sub(
-              r'(\s*"date_expire":\s*")\d{4}-\d{2}-\d{2}(")',
-              f'\\1{new_date}\\2',
-              updated_content
-          )
+          # Fix the adobe_data structure and update the expiration date
+          # Match the entire adobe_data dictionary to ensure correct structure
+          adobe_data_pattern = re.compile(r'adobe_data = \{[^}]*\}', re.DOTALL)
+          adobe_data_match = adobe_data_pattern.search(updated_content)
           
-          # In case the field is missing, check and add it back if needed
-          if '"date_expire":' not in updated_content:
-              # Find where to insert the field (after userId field)
-              updated_content = re.sub(
-                  r'("userId":\s*\'.*?\')',
-                  f'\\1,\n        "date_expire": "{new_date}"',
-                  updated_content
-              )
+          if adobe_data_match:
+              adobe_data_text = adobe_data_match.group(0)
+              
+              # Fix structure and update date
+              fixed_adobe_data = """adobe_data = {
+        "userId": '',
+        "date_expire": "%s",
+        "status_number": "0",
+        "Submit_get": ''
+}""" % new_date
+              
+              # Replace the entire adobe_data dictionary
+              updated_content = updated_content.replace(adobe_data_text, fixed_adobe_data)
           
           # Write the updated content back
           with open('payload.py', 'w') as file:
