@@ -53,7 +53,7 @@ password = os.getenv("KMUTNB_PASSWORD")
 # Headers used for the login POST
 payload_headers = {
     "Content-Type": "application/x-www-form-urlencoded",
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:146.0) Gecko/20100101 Firefox/146.0",
     "Origin": "https://software.kmutnb.ac.th",
     "Referer": LOGIN_URL,
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -83,7 +83,7 @@ def make_date_expire(dt: _date) -> str:
 # Adobe process headers and data
 adobe_headers = {
     "Content-Type": "application/x-www-form-urlencoded",
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:146.0) Gecko/20100101 Firefox/146.0",
     "Origin": "https://software.kmutnb.ac.th",
     "Referer": ADOBE_PROCESS_URL,
 }
