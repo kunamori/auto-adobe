@@ -1,9 +1,6 @@
-name: Automatic get Adobe from Software KMUTNB
+name: Borrow License from Software KMUTNB
 
 on:
-  pull_request:
-    types: [opened]
-    branches: [main]
   schedule:
     - cron: "0 22 1 * *"
 
@@ -12,23 +9,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v5
 
-    - name: Set up Python 3.13
-      uses: actions/setup-python@v5.6.0
-      with:
-        python-version: 3.13
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.14
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install requests python-dotenv
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Create env file
-      run: |
-        echo "KMUTNB_USERNAME=${{ secrets.KMUTNB_USERNAME }}" >> .env
-        echo "KMUTNB_PASSWORD=${{ secrets.KMUTNB_PASSWORD }}" >> .env
-        cat .env
+      - name: Create .env file
+        run: |
+          echo "KMUTNB_USERNAME=${{ secrets.KMUTNB_USERNAME }}" >> .env
+          echo "KMUTNB_PASSWORD=${{ secrets.KMUTNB_PASSWORD }}" >> .env
 
-    - name: Running Payload
-      run: python payload.py
+      - name: Start Payload
+        run: python src/payload.py
